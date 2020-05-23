@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#009688</color>
+    <color name="colorPrimaryDark">#00574E</color>
+    <color name="colorAccent">#D81B60</color>
+    <color name="colorFondoMenuOpciones">#D81B60</color>
+    <color name="colorToolbarHistorico">#D2F1ED</color>
+    <color name="AAAAAAAAAAAAAAAAAAAAAA">#82C44E</color>
+</resources>

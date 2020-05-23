@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/navigation_home"
+        android:icon="@drawable/ic_home_icon_silhouette"
+        android:title="@string/title_home" />
+
+    <item
+        android:id="@+id/navigation_measure"
+        android:icon="@drawable/ic_heart_rate"
+        android:title="@string/title_measure" />
+    <item
+        android:id="@+id/navigation_historical"
+        android:icon="@drawable/ic_book"
+        android:title="@string/title_historical" />
+    <item
+        android:id="@+id/navigation_charts"
+        android:icon="@drawable/ic_bar_stats"
+        android:title="@string/title_graphics" />
+
+</menu>

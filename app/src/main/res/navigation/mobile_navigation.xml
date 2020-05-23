@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mobile_navigation"
+    app:startDestination="@+id/navigation_home">
+
+    <fragment
+        android:id="@+id/navigation_home"
+        android:name="com.tfg.hrv.ui.home.HomeFragment"
+        android:label="@string/title_home"
+        tools:layout="@layout/fragment_home" />
+
+    <fragment
+        android:id="@+id/navigation_measure"
+        android:name="com.tfg.hrv.ui.measure.MeasureFragment"
+        android:label="@string/title_measure"
+        tools:layout="@layout/fragment_measure" />
+
+    <fragment
+        android:id="@+id/navigation_historical"
+        android:name="com.tfg.hrv.ui.historical.HistoricalFragment"
+        android:label="@string/title_historical"
+        tools:layout="@layout/fragment_historical" />
+
+    <fragment
+        android:id="@+id/navigation_charts"
+        android:name="com.tfg.hrv.ui.charts.ChartsFragment"
+        android:label="@string/title_graphics"
+        tools:layout="@layout/fragment_chart" />
+
+</navigation>

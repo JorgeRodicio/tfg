@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">HRV</string>
+    <string name="title_home">Home</string>
+    <string name="title_measure">Medir VFC</string>
+    <string name="title_dashboard">Dashboard</string>
+    <string name="title_notifications">Notifications</string>
+    <string name="title_historical">Histórico</string>
+    <string name="title_graphics">Gráficos</string>
+    <string name="title_tv_heartRate">Frecuencia cardiaca:</string>
+    <string name="title_tv_variability">Variabilidad:</string>
+    <string name="title_tv_comment">Comentario:</string>
+    <string name="menu_item_delete">Eliminar</string>
+    <string name="tv_years">Año</string>
+    <string name="title_last_measurement">Última medición realizada</string>
+
+
+</resources>

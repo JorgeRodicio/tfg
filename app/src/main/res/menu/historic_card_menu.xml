@@ -1,7 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
+        android:id="@+id/mi_details"
+        android:colorControlHighlight="@color/colorBlack"
+        android:title="Detalles"
+        android:visible="true" />
+    <item
         android:id="@+id/mi_delete"
-        android:title="@string/menu_item_delete" />
+        android:colorControlHighlight="@color/colorBlack"
+        android:icon="@drawable/ic_search_black_24dp"
+        android:title="@string/menu_item_delete"
+        android:visible="true" />
 
 </menu>

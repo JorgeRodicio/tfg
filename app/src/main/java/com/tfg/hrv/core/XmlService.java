@@ -20,9 +20,11 @@ import org.xml.sax.SAXException;
 import org.xmlpull.v1.XmlSerializer;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
@@ -162,16 +164,21 @@ public class XmlService {
                     serializer.text(this.measurementList.get(i).getComment());
                     serializer.endTag("", TAG_COMMENT);
                 }
-
-
                 serializer.endTag("", TAG_MEASUREMENT);
             }
 
             serializer.endTag("", TAG_MEASUREMENTS);
             serializer.endDocument();
-            result = writer.toString();
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.append(serializer.toString());
+            result = stringBuilder.toString();
+            writer.close();
 
             OutputStreamWriter fout = new OutputStreamWriter(this.context.openFileOutput(FILE_NAME, Context.MODE_PRIVATE));
+
+            //BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(result));
+            //bufferedWriter.write(result);
+
             fout.write(result);
             fout.close();
 
@@ -217,6 +224,7 @@ public class XmlService {
         Integer hrMax = null;
         Integer hrMin = null;
         String comment = null;
+
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 
         //Obtenemos la referencia al fichero XML de entrada
@@ -336,9 +344,11 @@ public class XmlService {
 
             }
 
-            Measurement measurement = new Measurement(date, meanHeartRate, variability, rrIntervalList, heartRateList, meanRR, sdnn, nn50, pnn50, rmssd, lnRmssd, hrMax, hrMin);
+            if(date != null && meanHeartRate != null && variability != null && rrIntervalList != null && heartRateList != null & meanRR != null && sdnn != null && nn50 != null && pnn50 != null && rmssd != null && lnRmssd != null && hrMax != null && hrMin != null){
+                Measurement measurement = new Measurement(date, meanHeartRate, variability, rrIntervalList, heartRateList, meanRR, sdnn, nn50, pnn50, rmssd, lnRmssd, hrMax, hrMin);
 
-            this.measurementList.add(measurement);
+                this.measurementList.add(measurement);
+            }
         }
 
         System.out.println("XML leidoooooooooooo");
@@ -386,13 +396,13 @@ public class XmlService {
         this.context = context;
     }
 
-    public void fillHistoricalDemo(){
+    public void mockData(){
         XmlSerializer serializer = Xml.newSerializer();
         StringWriter writer = new StringWriter();
         String result = "";
 
-        for(Integer i = 1; i < 13; i++){
-            for(Integer j = 1; j < 30; j++){
+        for(Integer i = 1; i < 7; i++){
+            for(Integer j = 1; j < 20; j++){
 
                 Random r = new Random();
                 int random = r.nextInt(100);
@@ -418,6 +428,34 @@ public class XmlService {
                 measurement.setHeartRate(random);
                 random = r.nextInt(100);
                 measurement.setVariability(new Integer(random));
+                List<Integer> rrIntervals = new ArrayList<>();
+                List<Integer> heartRateList = new ArrayList<>();
+
+                for(int k = 0; k < 20; k++){
+                    rrIntervals.add(r.nextInt(1000));
+                    heartRateList.add(r.nextInt(100));
+                }
+
+                measurement.setRrIntervals(rrIntervals);
+                measurement.setHeartRateList(heartRateList);
+
+                Integer meanRR = r.nextInt(100);
+                measurement.setMeanRR(meanRR);
+                BigDecimal sdnn = new BigDecimal(r.nextInt(100));
+                measurement.setSdnn(sdnn);
+                Integer nn50 = r.nextInt(50);
+                measurement.setNn50(nn50);
+                BigDecimal pnn50 = new BigDecimal(r.nextInt(100));
+                measurement.setPnn50(pnn50);
+                BigDecimal rmssd = new BigDecimal(r.nextInt(1000));
+                measurement.setRmssd(rmssd);
+                BigDecimal lnRmssd = new BigDecimal(r.nextInt(10));
+                measurement.setLnRmssd(lnRmssd);
+                Integer hrMax = r.nextInt(100) + 10;;
+                measurement.setHrMax(hrMax);
+                Integer hrMin = 50;
+                measurement.setHrMin(hrMin);
+                measurement.setHrMaxMinDifference(hrMax - hrMin);
                 measurement.setComment("Me siento bien");
 
                 this.measurementList.add(measurement);
@@ -607,4 +645,66 @@ public class XmlService {
         }
     }
 
+    public static List<Measurement> randomMeasurement(){
+        List<Measurement> toret = new ArrayList<>();
+
+        for(int monthIndex = 1; monthIndex < 5; monthIndex ++){
+            for(int  dayIndex = 1; dayIndex < 25; dayIndex ++){
+                Random r = new Random();
+                int random = r.nextInt(100);
+
+                Measurement measurement = new Measurement();
+                String month = "";
+                String day = "";
+
+                if(monthIndex < 10){
+                    month = "0";
+                }
+
+                if(dayIndex < 10){
+                    day = "0";
+                }
+
+                month = month + monthIndex;
+                day = day + dayIndex;
+
+                measurement.setDate(day+ "/" + month +"/2020 10:00:00");
+                measurement.setHeartRate(random);
+                random = r.nextInt(100);
+                measurement.setVariability(new Integer(random));
+                List<Integer> rrIntervals = new ArrayList<>();
+                List<Integer> heartRateList = new ArrayList<>();
+
+                for(int k = 0; k < 20; k++){
+                    rrIntervals.add(r.nextInt(1000));
+                    heartRateList.add(r.nextInt(100));
+                }
+
+                measurement.setRrIntervals(rrIntervals);
+                measurement.setHeartRateList(heartRateList);
+
+                Integer meanRR = r.nextInt(100);
+                measurement.setMeanRR(meanRR);
+                BigDecimal sdnn = new BigDecimal(r.nextInt(100));
+                measurement.setSdnn(sdnn);
+                Integer nn50 = r.nextInt(50);
+                measurement.setNn50(nn50);
+                BigDecimal pnn50 = new BigDecimal(r.nextInt(100));
+                measurement.setPnn50(pnn50);
+                BigDecimal rmssd = new BigDecimal(r.nextInt(1000));
+                measurement.setRmssd(rmssd);
+                BigDecimal lnRmssd = new BigDecimal(r.nextInt(10));
+                measurement.setLnRmssd(lnRmssd);
+                Integer hrMax = r.nextInt(100) + 10;;
+                measurement.setHrMax(hrMax);
+                Integer hrMin = 50;
+                measurement.setHrMin(hrMin);
+                measurement.setHrMaxMinDifference(hrMax - hrMin);
+                measurement.setComment("Me siento bien");
+
+                toret.add(measurement);
+            }
+        }
+        return toret;
+    }
 }

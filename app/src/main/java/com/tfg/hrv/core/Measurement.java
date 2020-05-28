@@ -59,7 +59,8 @@ public class Measurement {
     private String comment;
 
     public Measurement(){
-       calculateDate();
+
+        calculateDate();
     }
 
     public Measurement(Integer heartRate, Integer variability, String comment){
@@ -105,7 +106,11 @@ public class Measurement {
         this.lnRmssd = lnRmssd;
         this.hrMax = hrMax;
         this.hrMin = hrMin;
-        this.hrMaxMinDifference = hrMax - hrMin;
+
+        if(hrMax != null && hrMin != null){
+            this.hrMaxMinDifference = hrMax - hrMin;
+        }
+
     }
 
     public String getDate() {
@@ -346,6 +351,14 @@ public class Measurement {
         StringBuilder toret = new StringBuilder();
 
         toret.append("Date: " + this.date);
+        toret.append("\nRR Intervals: ");
+        for (Integer interval: this.rrIntervals) {
+            toret.append(interval + " ");
+        }
+        toret.append("\nHeart Rates: ");
+        for (Integer heartRate: this.heartRateList) {
+            toret.append(heartRate + " ");
+        }
         toret.append("\nVariability: " + this.variability);
         toret.append("\nHeart Rate Mean: " + this.heartRate);
         toret.append("\nAverage RR: " + this.meanRR + " ms");
@@ -353,6 +366,7 @@ public class Measurement {
         toret.append("\nNN50: " + this.nn50);
         toret.append("\nPNN50: " + this.pnn50 + " %");
         toret.append("\nRMSSD: " + this.rmssd + " ms");
+        toret.append("\nLN_RMSSD: " + this.lnRmssd + " ms");
         toret.append("\nHR Max: " + this.hrMax + " bpm");
         toret.append("\nHR Min: " + this.hrMin + " bpm");
         toret.append("\nHR Max - HR Min: " + this.hrMaxMinDifference + " bpm");

@@ -4,6 +4,7 @@ import androidx.annotation.RequiresApi;
 import androidx.lifecycle.ViewModelProviders;
 
 import android.app.DatePickerDialog;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Build;
 import android.os.Bundle;
 
@@ -26,15 +27,18 @@ import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 import com.tfg.hrv.R;
 import com.tfg.hrv.core.Measurement;
+import com.tfg.hrv.core.MeasurementHelper;
+import com.tfg.hrv.core.SQLite.MeasurementDbHelper;
 import com.tfg.hrv.core.XmlService;
 
 import java.util.List;
 
 public class HistoricalFragment extends Fragment {
 
-    private HistoricalViewModel mViewModel;
-    private XmlService xmlService;
+    private SQLiteDatabase db;
+    private MeasurementDbHelper dbHelper;
     private List<Measurement> measurements;
+
     private String dateFrom;
     private String dateTo;
 
@@ -70,59 +74,23 @@ public class HistoricalFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable final Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        this.buttonFilterFrom.setOnClickListener(new View.OnClickListener() {
-            @RequiresApi(api = Build.VERSION_CODES.N)
-            @Override
-            public void onClick(View view) {
-                showDialog(view, chipFrom);
-                //System.out.println("Desde " + dateFrom + " hasta " + dateTo);
+        this.dbHelper = new MeasurementDbHelper(getContext());
+        this.db = dbHelper.getWritableDatabase();
 
-            }
-        });
+        if(db != null){
+            this.measurements = MeasurementDbHelper.getAllMeasurement(db);
+        }
 
-        this.buttonFilterTo.setOnClickListener(new View.OnClickListener() {
-            @RequiresApi(api = Build.VERSION_CODES.N)
-            @Override
-            public void onClick(View view) {
-                showDialog(view, chipTo);
-                //System.out.println("Desde " + dateFrom + " hasta " + dateTo);
-            }
-        });
-
+        updateMeasurementList();
+        setListeners();
     }
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        mViewModel = ViewModelProviders.of(this).get(HistoricalViewModel.class);
-        this.xmlService = mViewModel.getXmlService();
-        //xmlService.fillHistoricalDemo();
-        //xmlService.saveXml();
-        try {
-            xmlService.loadXml();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        this.measurements = xmlService.getMeasurementList();
-        HistoricalAdapter rvAdapter = new HistoricalAdapter(this.measurements, getContext());
-        this.recyclerView.setAdapter(rvAdapter);
-        this.dateFrom = null;
-        this.dateTo = null;
     }
 
-    @Override
-    public void onDestroy() {
-        this.xmlService.saveXml();
-        super.onDestroy();
-
-    }
-
-    @Override
-    public void onStop() {
-        this.xmlService.saveXml();
-        super.onStop();
-    }
 
     @RequiresApi(api = Build.VERSION_CODES.N)
     private void showDialog(View view, final Chip chip){
@@ -208,13 +176,34 @@ public class HistoricalFragment extends Fragment {
 
 
     private void updateMeasurementList(){
-        List newMeasurementList = this.xmlService.getMeasurementsRange(this.dateFrom, this.dateTo);
+        List newMeasurementList = MeasurementHelper.getMeasurementsRange(this.measurements, this.dateFrom, this.dateTo);
 
         if(newMeasurementList != null){
             this.measurements = newMeasurementList;
         }
-        HistoricalAdapter rvAdapter = new HistoricalAdapter(this.measurements, getContext());
+        HistoricalAdapter rvAdapter = new HistoricalAdapter(this.measurements, getContext(), this.db);
         this.recyclerView.setAdapter(rvAdapter);
     }
 
+
+    private void setListeners(){
+        this.buttonFilterFrom.setOnClickListener(new View.OnClickListener() {
+            @RequiresApi(api = Build.VERSION_CODES.N)
+            @Override
+            public void onClick(View view) {
+                showDialog(view, chipFrom);
+                //System.out.println("Desde " + dateFrom + " hasta " + dateTo);
+
+            }
+        });
+
+        this.buttonFilterTo.setOnClickListener(new View.OnClickListener() {
+            @RequiresApi(api = Build.VERSION_CODES.N)
+            @Override
+            public void onClick(View view) {
+                showDialog(view, chipTo);
+                //System.out.println("Desde " + dateFrom + " hasta " + dateTo);
+            }
+        });
+    }
 }

@@ -1,9 +1,13 @@
 package com.tfg.hrv;
 
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.Xml;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.tfg.hrv.core.Measurement;
+import com.tfg.hrv.core.SQLite.MeasurementDbHelper;
 import com.tfg.hrv.core.XmlService;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -12,8 +16,12 @@ import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
+import java.util.List;
+
 public class MainActivity extends AppCompatActivity {
 
+    private SQLiteDatabase db;
+    private MeasurementDbHelper dbHelper;
     private XmlService xmlService;
 
     @Override
@@ -33,10 +41,22 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(navView, navController);
 
-        this.xmlService = new XmlService(this);
+        this.dbHelper = new MeasurementDbHelper(this);
+        this.db = dbHelper.getWritableDatabase();
 
-        //xmlService.fillHistoricalDemo();
+        if(db != null){
+            List<Measurement> measurements = MeasurementDbHelper.getAllMeasurement(db);
+            /*if(measurements != null && !measurements.isEmpty()){
+                for (Measurement measure: measurements) {
+                    System.out.println(measure.toString());
+                }
+            }*/
+        }
+    }
+
+    @Override
+    protected void onStop() {
         //xmlService.saveXml();
-
+        super.onStop();
     }
 }

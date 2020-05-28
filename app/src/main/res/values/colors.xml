@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#009688</color>
-    <color name="colorPrimaryDark">#00574E</color>
-    <color name="colorAccent">#D81B60</color>
-    <color name="colorFondoMenuOpciones">#D81B60</color>
-    <color name="colorToolbarHistorico">#D2F1ED</color>
-    <color name="AAAAAAAAAAAAAAAAAAAAAA">#82C44E</color>
+    <color name="colorPrimary">#41789E</color>
+    <color name="colorPrimaryDark">#41789E</color>
+    <color name="colorAccent">#F43636</color>
+    <color name="colorFondoMenuOpciones">#E5E5E5</color>
+    <color name="colorToolbarHistorico">#FAEBEBCC</color>
+    <color name="colorBlack">#000000</color>
+    <color name="colorYellow">#F0EB37</color>
+    <color name="colorBlue">#46D2B9</color>
 </resources>

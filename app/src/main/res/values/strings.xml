@@ -6,6 +6,7 @@
     <string name="title_notifications">Notifications</string>
     <string name="title_historical">Histórico</string>
     <string name="title_graphics">Gráficos</string>
+    <string name="title_settings">Ajustes</string>
     <string name="title_tv_heartRate">Frecuencia cardiaca:</string>
     <string name="title_tv_variability">Variabilidad:</string>
     <string name="title_tv_comment">Comentario:</string>

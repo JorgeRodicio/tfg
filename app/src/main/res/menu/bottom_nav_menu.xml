@@ -20,5 +20,9 @@
         android:id="@+id/navigation_charts"
         android:icon="@drawable/ic_bar_stats"
         android:title="@string/title_graphics" />
+    <item
+        android:id="@+id/navigation_settings"
+        android:icon="@drawable/ic_settings_black_24dp"
+        android:title="@string/title_settings" />
 
 </menu>

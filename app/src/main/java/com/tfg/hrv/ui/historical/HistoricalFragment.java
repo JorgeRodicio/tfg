@@ -1,9 +1,9 @@
 package com.tfg.hrv.ui.historical;
 
 import androidx.annotation.RequiresApi;
-import androidx.lifecycle.ViewModelProviders;
 
 import android.app.DatePickerDialog;
+import android.content.DialogInterface;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Build;
 import android.os.Bundle;
@@ -17,36 +17,32 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.CompoundButton;
 import android.widget.DatePicker;
+import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.android.material.chip.Chip;
-import com.google.android.material.chip.ChipGroup;
 import com.tfg.hrv.R;
 import com.tfg.hrv.core.Measurement;
 import com.tfg.hrv.core.MeasurementHelper;
-import com.tfg.hrv.core.SQLite.MeasurementDbHelper;
-import com.tfg.hrv.core.XmlService;
+import com.tfg.hrv.core.SQLite.DbHelper;
 
+import java.util.Calendar;
 import java.util.List;
+import java.util.Objects;
 
 public class HistoricalFragment extends Fragment {
 
     private SQLiteDatabase db;
-    private MeasurementDbHelper dbHelper;
+    private DbHelper dbHelper;
     private List<Measurement> measurements;
 
     private String dateFrom;
     private String dateTo;
-
-    private Button buttonFilterFrom;
-    private Button buttonFilterTo;
     private RecyclerView recyclerView;
-    private Chip chipFrom;
-    private Chip chipTo;
+    private ImageView imageFilter;
+    private ImageView imageClearFilter;
+    private TextView tvFilterDate;
 
     public static HistoricalFragment newInstance() {
         return new HistoricalFragment();
@@ -60,28 +56,31 @@ public class HistoricalFragment extends Fragment {
         this.recyclerView = (RecyclerView) view.findViewById(R.id.recyclerView);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this.getContext());
         this.recyclerView.setLayoutManager(layoutManager);
-        this.buttonFilterFrom = (Button) view.findViewById(R.id.bt_from);
-        this.buttonFilterTo = (Button) view.findViewById(R.id.bt_to);
-        this.chipFrom = (Chip) view.findViewById(R.id.chip_from);
-        this.chipTo = (Chip) view.findViewById(R.id.chip_to);
-        this.chipFrom.setVisibility(View.GONE);
-        this.chipTo.setVisibility(View.GONE);
-
+        this.imageFilter = (ImageView) view.findViewById(R.id.icon_filter);
+        this.imageClearFilter = (ImageView) view.findViewById(R.id.clear_filter);
+        this.tvFilterDate = (TextView) view.findViewById(R.id.tv_filter_date);
+        this.tvFilterDate.setText("");
+        this.imageClearFilter.setVisibility(View.GONE);
         return view;
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
     public void onViewCreated(@NonNull View view, @Nullable final Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        this.dbHelper = new MeasurementDbHelper(getContext());
+        this.dbHelper = new DbHelper(getContext());
         this.db = dbHelper.getWritableDatabase();
 
         if(db != null){
-            this.measurements = MeasurementDbHelper.getAllMeasurement(db);
+            this.measurements = DbHelper.getAllMeasurement(db);
         }
 
-        updateMeasurementList();
+        this.dateFrom = null;
+        this.dateTo = null;
+
+        HistoricalAdapter rvAdapter = new HistoricalAdapter(getActivity(), this.measurements, getContext(), this.db);
+        this.recyclerView.setAdapter(rvAdapter);
         setListeners();
     }
 
@@ -104,74 +103,8 @@ public class HistoricalFragment extends Fragment {
                 String strDay = String.valueOf(day);
                 String strMonth = String.valueOf(month + 1);
 
-                if(day < 10){
-                    strDay = "0"+strDay;
-                }
-
-                if(month < 10){
-                    strMonth = "0"+strMonth;
-                }
-
-                if(chip.equals(chipFrom)){
-                    dateFrom = strDay + "/" + strMonth  + "/" + year;
-                    chip.setText("Desde " + dateFrom);
-                }
-
-                if(chip.equals(chipTo)){
-                    dateTo = strDay + "/" + strMonth  + "/" + year;
-
-                    if(isToLowerThanFrom(dateFrom, dateTo) == false){
-                        Toast.makeText(getContext(), "La fecha de fin es menor que la de inicio", Toast.LENGTH_SHORT).show();
-                        dateTo = null;
-                        chip.setVisibility(View.GONE);
-                    }else{
-                        chip.setText("Hasta " + dateTo);
-                    }
-
-                }
-
-                System.out.println("Desde " + dateFrom + " hasta " + dateTo);
-
-                chip.setCheckable(true);
-                chip.setClickable(true);
-                chip.setChecked(true);
-
-                updateMeasurementList();
-
-                chip.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                    @Override
-                    public void onCheckedChanged(CompoundButton compoundButton, boolean selected) {
-                        if(selected == false){
-                            chip.setVisibility(View.GONE);
-
-                            if(chip.equals(chipFrom)){
-                                dateFrom = null;
-                                System.out.println("Desde " + dateFrom + " hasta " + dateTo);
-                            }
-
-                            if(chip.equals(chipTo)){
-                                dateTo = null;
-                                System.out.println("Desde " + dateFrom + " hasta " + dateTo);
-                            }
-
-                            updateMeasurementList();
-                        }
-
-                    }
-                });
             }
         });
-    }
-
-
-    private Boolean isToLowerThanFrom(String dateFrom, String dateTo){
-        if(dateFrom != null && dateTo != null && dateFrom.compareTo(dateTo) == 1){
-            System.out.println(dateFrom + " es mayor que " + dateTo);
-            return false;
-        }else{
-            System.out.println(dateFrom + " es menor que " + dateTo);
-            return true;
-        }
     }
 
 
@@ -179,31 +112,118 @@ public class HistoricalFragment extends Fragment {
         List newMeasurementList = MeasurementHelper.getMeasurementsRange(this.measurements, this.dateFrom, this.dateTo);
 
         if(newMeasurementList != null){
-            this.measurements = newMeasurementList;
+            HistoricalAdapter rvAdapter = new HistoricalAdapter(getActivity(), newMeasurementList, getContext(), this.db);
+            this.recyclerView.setAdapter(rvAdapter);
         }
-        HistoricalAdapter rvAdapter = new HistoricalAdapter(this.measurements, getContext(), this.db);
-        this.recyclerView.setAdapter(rvAdapter);
+
     }
 
-
+    @RequiresApi(api = Build.VERSION_CODES.N)
     private void setListeners(){
-        this.buttonFilterFrom.setOnClickListener(new View.OnClickListener() {
-            @RequiresApi(api = Build.VERSION_CODES.N)
+        this.imageFilter.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view) {
-                showDialog(view, chipFrom);
-                //System.out.println("Desde " + dateFrom + " hasta " + dateTo);
+            public void onClick(View v) {
+                tvFilterDate.setText("");
+                showDialogDateFrom();
 
             }
         });
 
-        this.buttonFilterTo.setOnClickListener(new View.OnClickListener() {
-            @RequiresApi(api = Build.VERSION_CODES.N)
+        this.imageClearFilter.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view) {
-                showDialog(view, chipTo);
-                //System.out.println("Desde " + dateFrom + " hasta " + dateTo);
+            public void onClick(View v) {
+                dateFrom = null;
+                dateTo = null;
+                tvFilterDate.setText("");
+                imageClearFilter.setVisibility(View.GONE);
+                updateMeasurementList();
             }
         });
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.N)
+    private void showDialogDateFrom(){
+        Calendar newCalendar = Calendar.getInstance();
+        DatePickerDialog  startTime =  new DatePickerDialog(Objects.requireNonNull(getContext()));
+
+        startTime.setTitle("Fecha de inicio");
+        startTime.setOnDateSetListener(new DatePickerDialog.OnDateSetListener() {
+            @Override
+            public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
+                //Toast.makeText(getContext(), dayOfMonth + "/" + month + "/" + year, Toast.LENGTH_SHORT).show();
+                String strDay = "";
+                String strMonth = "";
+                if(dayOfMonth < 10){
+                    strDay = "0";
+                }
+
+                if(month < 10){
+                    strMonth = "0";
+                }
+
+                dateFrom = strDay + dayOfMonth + "/" + strMonth + month + "/" + year;
+                showDialogDateTo();
+            }
+        });
+
+        startTime.setOnCancelListener(new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialog) {
+                dateFrom = null;
+                showDialogDateTo();
+            }
+        });
+
+        startTime.show();
+
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.N)
+    private void showDialogDateTo(){
+        Calendar newCalendar = Calendar.getInstance();
+        DatePickerDialog  startTime =  new DatePickerDialog(Objects.requireNonNull(getContext()));
+
+        startTime.setTitle("Fecha de fin");
+        startTime.setOnDateSetListener(new DatePickerDialog.OnDateSetListener() {
+            @Override
+            public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
+                //Toast.makeText(getContext(), dayOfMonth + "/" + month + "/" + year, Toast.LENGTH_SHORT).show();
+                String strDay = "";
+                String strMonth = "";
+                if(dayOfMonth < 10){
+                    strDay = "0";
+                }
+
+                if(month < 10){
+                    strMonth = "0";
+                }
+
+                dateTo = strDay + dayOfMonth + "/" + strMonth + month + "/" + year;
+                setFilterText();
+                updateMeasurementList();
+            }
+        });
+
+        startTime.setOnCancelListener(new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialog) {
+                dateTo = null;
+                setFilterText();
+                updateMeasurementList();
+            }
+        });
+
+        startTime.show();
+    }
+
+    private void setFilterText(){
+        if(dateFrom != null){
+            this.tvFilterDate.setText("Desde " + tvFilterDate.getText() + dateFrom + "   ");
+            this.imageClearFilter.setVisibility(View.VISIBLE);
+        }
+        if(dateTo != null){
+            this.tvFilterDate.setText(tvFilterDate.getText() + "Hasta "  + dateTo);
+            this.imageClearFilter.setVisibility(View.VISIBLE);
+        }
     }
 }

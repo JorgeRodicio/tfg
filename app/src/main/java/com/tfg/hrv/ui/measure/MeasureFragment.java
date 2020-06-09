@@ -2,7 +2,6 @@ package com.tfg.hrv.ui.measure;
 
 import android.animation.ObjectAnimator;
 import android.app.AlertDialog;
-import android.app.DatePickerDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
@@ -13,11 +12,11 @@ import android.bluetooth.BluetoothManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 
-import androidx.annotation.NavigationRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
@@ -26,7 +25,6 @@ import androidx.fragment.app.Fragment;
 
 import android.os.CountDownTimer;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -36,25 +34,22 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+import androidx.appcompat.widget.Toolbar;
 
-import com.github.mikephil.charting.charts.Chart;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.android.material.internal.NavigationMenu;
+import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.charts.PieChart;
 import com.tfg.hrv.R;
-import com.tfg.hrv.core.ChartService;
 import com.tfg.hrv.core.Measurement;
-import com.tfg.hrv.core.XmlService;
+import com.tfg.hrv.core.SQLite.DbHelper;
+import com.tfg.hrv.ui.charts.ChartHelper;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
 
 import static android.bluetooth.BluetoothAdapter.STATE_CONNECTED;
 import static android.bluetooth.BluetoothAdapter.STATE_DISCONNECTED;
-import static com.tfg.hrv.R.id.mobile_navigation;
-import static com.tfg.hrv.R.id.nav_view;
 
 public class MeasureFragment extends Fragment {
 
@@ -65,15 +60,18 @@ public class MeasureFragment extends Fragment {
     private UUID HEART_RATE_MEASUREMENT_CHAR_UUID = convertFromInteger(0x2A37);
     private UUID HEART_RATE_CONTROL_POINT_CHAR_UUID = convertFromInteger(0x2A39);
     private UUID CLIENT_CHARACTERISTIC_CONFIG_UUID = convertFromInteger(0x2902);
-    private Integer COUNTDOWN_TIME = 10000;
+    private Integer COUNTDOWN_TIME = 0;
 
-    private XmlService xmlService;
+
+    private SQLiteDatabase db;
+    private DbHelper dbHelper;
     private Measurement measurement;
     private BluetoothAdapter bluetoothAdapter;
     private List<BluetoothDevice> deviceList;
     private BluetoothDevice device;
     private BluetoothGatt gatt;
 
+    private CardView cardViewDevice;
     private ListView lvDevices;
     private Button btStartMeasure;
     private Button btSaveMeasurement;
@@ -86,8 +84,7 @@ public class MeasureFragment extends Fragment {
     private ObjectAnimator animator;
     private CardView cardViewHeartRate;
     private CardView cardViewRR;
-    private Chart chartHeartRate;
-    private Chart chartRR;
+
     private CountDownTimer countDownTimer;
     private CardView cardViewInfoMeasure;
     private TextView tvTitleVariabilityInfo;
@@ -99,18 +96,21 @@ public class MeasureFragment extends Fragment {
     private TextView tvPnn50;
     private TextView tvRmssd;
     private TextView tvLnRmssd;
+    private TextView tvHeartRateMax;
+    private TextView tvHeartRateMin;
     private TextView tvHeartRateMaxMin;
+    private Toolbar toolBarDevices;
 
-    private List<Double> valueList;
     private Boolean isChronoFinished;
     private Boolean isCountdownStarted;
     private Boolean isMeasureSaved;
     private List<Integer> rrIntervalList;
     private List<Integer> heartRateList;
-    private ChartService chartService;
-    private Integer xAxisValue;
 
-
+    private PieChart pieChartChrono;
+    private PieChart pieChartVariability;
+    private LineChart chartHeartRate;
+    private LineChart chartRR;
 
     public MeasureFragment() {
         // Required empty public constructor
@@ -119,22 +119,26 @@ public class MeasureFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         View view  = inflater.inflate(R.layout.fragment_measure, container, false);
+        this.cardViewDevice = (CardView) view.findViewById(R.id.cv_devices_measure);
+        this.toolBarDevices = (Toolbar) view.findViewById(R.id.toolbar_measure_device);
         this.lvDevices = (ListView) view.findViewById(R.id.lv_devices);
         this.btStartMeasure = (Button) view.findViewById(R.id.bt_start_measure);
         this.btSaveMeasurement = (Button) view.findViewById(R.id.bt_save_measure);
-        this.tvTitleMeasure = (TextView) view.findViewById(R.id.tv_title_measurement);
-        this.tvTitleChrono = (TextView) view.findViewById(R.id.tv_title_chrono);
-        this.tvChrono = (TextView) view.findViewById(R.id.tv_chrono);
+        //this.tvTitleMeasure = (TextView) view.findViewById(R.id.tv_title_measurement);
+        //this.tvTitleChrono = (TextView) view.findViewById(R.id.tv_title_chrono);
+        //this.tvChrono = (TextView) view.findViewById(R.id.tv_chrono);
         this.tvTitleHeartRateChart = (TextView) view.findViewById(R.id.tv_title_heart_rate_chart);
         this.tvTitleRRChart = (TextView) view.findViewById(R.id.tv_title_rr_chart);
-        this.progressBar = (ProgressBar) view.findViewById(R.id.progressBar);
+        //this.progressBar = (ProgressBar) view.findViewById(R.id.progressBar);
         this.cardViewHeartRate = (CardView) view.findViewById(R.id.cv_chart_hr);
         this.cardViewRR = (CardView) view.findViewById(R.id.cv_chart_rr);
-        this.chartHeartRate = (Chart) view.findViewById(R.id.lineChart_hr);
-        this.chartRR = (Chart) view.findViewById(R.id.lineChart_rr);
+        this.chartHeartRate = (LineChart) view.findViewById(R.id.lineChart_hr);
+        this.chartRR = (LineChart) view.findViewById(R.id.lineChart_rr);
+        this.pieChartChrono = (PieChart) view.findViewById(R.id.pieChart_chrono);
+        this.pieChartVariability = (PieChart) view.findViewById(R.id.pieChart_variability_measure);
         this.cardViewInfoMeasure = (CardView) view.findViewById(R.id.cv_info_measure);
         this.tvTitleVariabilityInfo = (TextView) view.findViewById(R.id.tv_title_variability_info);
-        this.tvVariabilityInfo = (TextView) view.findViewById(R.id.tv_variablity_info);
+        //this.tvVariabilityInfo = (TextView) view.findViewById(R.id.tv_variablity_info);
         this.tvHeartRateInfo = (TextView) view.findViewById(R.id.tv_heart_rate_info);
         this.tvAverageRR = (TextView) view.findViewById(R.id.tv_average_RR);
         this.tvSdnn = (TextView) view.findViewById(R.id.tv_sdnn);
@@ -142,22 +146,25 @@ public class MeasureFragment extends Fragment {
         this.tvPnn50 = (TextView) view.findViewById(R.id.tv_pnn50);
         this.tvRmssd = (TextView) view.findViewById(R.id.tv_rmssd);
         this.tvLnRmssd = (TextView) view.findViewById(R.id.tv_lnrmssd);
-        this.tvHeartRateMaxMin = (TextView) view.findViewById(R.id.tv_hr_max_min);
-
+        this.tvHeartRateMax = (TextView) view.findViewById(R.id.tv_hrMax_measure);
+        this.tvHeartRateMin = (TextView) view.findViewById(R.id.tv_hrMin_measure);
+        this.tvHeartRateMaxMin = (TextView) view.findViewById(R.id.tv_hr_max_min_measure);
 
         this.btStartMeasure.setVisibility(View.GONE);
         this.btSaveMeasurement.setVisibility(View.GONE);
-        this.tvTitleChrono.setVisibility(View.GONE);
-        this.tvChrono.setVisibility(View.GONE);
-        this.progressBar.setVisibility(View.GONE);
+        //this.tvTitleChrono.setVisibility(View.GONE);
+        //this.tvChrono.setVisibility(View.GONE);
+        //this.progressBar.setVisibility(View.GONE);
         this.cardViewHeartRate.setVisibility(View.GONE);
         this.cardViewRR.setVisibility(View.GONE);
         this.tvTitleHeartRateChart.setVisibility(View.GONE);
         this.tvTitleRRChart.setVisibility(View.GONE);
         this.cardViewInfoMeasure.setVisibility(View.GONE);
+        this.pieChartChrono.setVisibility(View.GONE);
+        //this.pieChartVariability.setVisibility(View.GONE);
 
-        this.tvVariabilityInfo.setText("");
-        this.tvHeartRateInfo.setText("Frecuencia cardíaca:   ");
+        //this.tvVariabilityInfo.setText("");
+        this.tvHeartRateInfo.setText("");
         this.tvAverageRR.setText("Media de intervalos R-R:   ");
         this.tvSdnn.setText("SDNN:   ");
         this.tvNn50.setText("NN50:   ");
@@ -169,6 +176,8 @@ public class MeasureFragment extends Fragment {
         this.isChronoFinished = false;
         this.isCountdownStarted = false;
         this.isMeasureSaved = false;
+        this.heartRateList = new ArrayList<>();
+        this.rrIntervalList = new ArrayList<>();
 
         return view;
     }
@@ -178,24 +187,23 @@ public class MeasureFragment extends Fragment {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         try{
-            this.xmlService = new XmlService(getContext());
-            this.xmlService.loadXml();
-            this.chartService =  new ChartService();
-            this.heartRateList = new ArrayList<>();
-            this.rrIntervalList = new ArrayList<>();
             this.isChronoFinished = false;
             this.isCountdownStarted = false;
             this.isMeasureSaved = false;
-            this.xAxisValue = 0;
             this.heartRateList = new ArrayList<>();
             this.rrIntervalList = new ArrayList<>();
+
+            this.dbHelper = new DbHelper(getContext());
+            this.db = dbHelper.getWritableDatabase();
+
+            this.COUNTDOWN_TIME = Integer.valueOf(DbHelper.getTime(db)) * 1000;
         }catch (Exception exc){
             System.err.println(exc);
         }
 
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -225,6 +233,7 @@ public class MeasureFragment extends Fragment {
 
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
     public void setDeviceList(){
+        this.toolBarDevices.setTitle("Selecciona dispositivo");
         BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
         this.deviceList = new ArrayList<BluetoothDevice>();
@@ -247,9 +256,12 @@ public class MeasureFragment extends Fragment {
         if(this.deviceList.size() > 0){
             this.lvDevices.setMinimumHeight(200);
         }
+
+        lvDevices.setDivider(null);
+        lvDevices.setDividerHeight(0);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public void setListeners(){
         lvDevices.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -259,6 +271,7 @@ public class MeasureFragment extends Fragment {
                 for(int a = 0; a < adapterView.getChildCount(); a++)
                 {
                     adapterView.getChildAt(a).setBackgroundColor(Color.WHITE);
+
                 }
 
                 view.setBackgroundColor(Color.LTGRAY);
@@ -275,9 +288,9 @@ public class MeasureFragment extends Fragment {
                     connectGatt();
                     buildChrono();
 
+
                     cardViewHeartRate.setVisibility(View.VISIBLE);
                     cardViewRR.setVisibility(View.VISIBLE);
-                    setCharts();
 
                 }catch (Exception ex){
                     Toast.makeText(getContext(), "Error al conectar con " + device.getName(), Toast.LENGTH_SHORT).show();
@@ -289,30 +302,15 @@ public class MeasureFragment extends Fragment {
         btSaveMeasurement.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                isMeasureSaved = true;
-
                 if(measurement != null){
-                    xmlService.addMeasurement(measurement);
+                    isMeasureSaved = true;
+                    saveMeasurement();
+                    Toast.makeText(getContext(), "Datos guardados", Toast.LENGTH_SHORT).show();
+                    btSaveMeasurement.setVisibility(View.GONE);
                 }
-
-                Toast.makeText(getContext(), "Datos guardados", Toast.LENGTH_SHORT).show();
-
-                btSaveMeasurement.setVisibility(View.GONE);
             }
         });
 
-
-        /*navView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
-            @Override
-            public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
-
-                if(!isMeasureSaved && isChronoFinished){
-                    showSaveDialog();
-                }
-
-                return false;
-            }
-        });*/
     }
 
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
@@ -322,12 +320,18 @@ public class MeasureFragment extends Fragment {
             public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
                 if (newState == STATE_CONNECTED){
                     gatt.discoverServices();
+
+                    if(isChronoFinished){
+                        gatt.disconnect();
+                    }
                 }
 
                 if(newState == STATE_DISCONNECTED){
                     gatt.disconnect();
                     gatt.close();
                     System.out.println("DESCONECTADO");
+                    System.out.println(measurement.toString());
+                    setMeasurementInfo(measurement);
                 }
             }
 
@@ -355,6 +359,7 @@ public class MeasureFragment extends Fragment {
                 gatt.writeCharacteristic(characteristic);
             }
 
+            @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
             @Override
             public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
 
@@ -367,15 +372,14 @@ public class MeasureFragment extends Fragment {
                         //animatePrgressBar();
                     }
 
-                    calculateHRandRRIntervals(value);
-                    setCharts();
-
-
                     if(isChronoFinished){
-                        gatt.disconnect();
                         measurement = new Measurement(heartRateList, rrIntervalList);
                         System.out.println(measurement.toString());
                         setMeasurementInfo(measurement);
+                        gatt.disconnect();
+                    }else{
+                        calculateHRandRRIntervals(value);
+                        setCharts();
                     }
                 }
             }
@@ -417,23 +421,26 @@ public class MeasureFragment extends Fragment {
 
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
     public void buildChrono(){
+        this.cardViewDevice.setVisibility(View.GONE);
         this.btStartMeasure.setVisibility(View.GONE);
         this.lvDevices.setVisibility(View.GONE);
-        this.tvTitleMeasure.setVisibility(View.GONE);
-        this.tvTitleMeasure.setTextSize(20);
+        //this.tvTitleMeasure.setVisibility(View.GONE);
+        //this.tvTitleMeasure.setTextSize(20);
 
-        this.tvTitleChrono.setVisibility(View.VISIBLE);
-        this.progressBar.setVisibility(View.VISIBLE);
-        this.tvChrono.setVisibility(View.VISIBLE);
+        //this.tvTitleChrono.setVisibility(View.VISIBLE);
+        this.pieChartChrono.setVisibility(View.VISIBLE);
+        //this.progressBar.setVisibility(View.VISIBLE);
+        //this.tvChrono.setVisibility(View.VISIBLE);
         this.tvTitleHeartRateChart.setVisibility(View.VISIBLE);
         this.tvTitleRRChart.setVisibility(View.VISIBLE);
 
-        this.tvTitleChrono.setText("Midiendo con " + device.getName());
+        //this.tvTitleChrono.setText("Midiendo con " + device.getName());
         //this.tvChrono.setTextSize(20);
-        this.tvTitleChrono.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
-        this.tvChrono.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+        //this.tvTitleChrono.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+        //this.tvChrono.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
         //this.tvChrono.setTextSize(50);
-        this.tvChrono.setText("30 seg");
+        //this.tvChrono.setText("30 seg");
+        ChartHelper.setPieChartChrono(pieChartChrono, COUNTDOWN_TIME / 1000, COUNTDOWN_TIME / 1000);
 
         setChronoTime();
 
@@ -443,24 +450,27 @@ public class MeasureFragment extends Fragment {
     public void setChronoTime(){
         this.countDownTimer = new CountDownTimer(COUNTDOWN_TIME, 1000) {
 
-
             public void onTick(long millisUntilFinished) {
-                tvChrono.setText(String.format(Locale.getDefault(), "%d sec.", millisUntilFinished / 1000L));
+                //tvChrono.setText(String.format(Locale.getDefault(), "%d sec.", millisUntilFinished / 1000L));
+                ChartHelper.setPieChartChrono(pieChartChrono, (int) (millisUntilFinished / 1000), COUNTDOWN_TIME / 1000);
+                pieChartChrono.notifyDataSetChanged();
+                pieChartChrono.invalidate();
             }
 
             public void onFinish() {
-                tvChrono.setVisibility(View.GONE);
-                progressBar.setVisibility(View.GONE);
-                tvTitleChrono.setVisibility(View.GONE);
+                //tvChrono.setVisibility(View.GONE);
+                //progressBar.setVisibility(View.GONE);
+                //tvTitleChrono.setVisibility(View.GONE);
 
-                tvVariabilityInfo.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+                //tvVariabilityInfo.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
                 tvTitleVariabilityInfo.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
 
                 cardViewInfoMeasure.setVisibility(View.VISIBLE);
                 btSaveMeasurement.setVisibility(View.VISIBLE);
+                pieChartChrono.setVisibility(View.GONE);
 
                 isChronoFinished = true;
-                Toast.makeText(getContext(), "Medición realizada", Toast.LENGTH_LONG).show();
+                //Toast.makeText(getContext(), "Medición realizada", Toast.LENGTH_LONG).show();
             }
         };
     }
@@ -489,8 +499,8 @@ public class MeasureFragment extends Fragment {
             System.out.println("RR: " + rrInterval + " ms");
             System.out.println("HR: " + hr);
 
-            rrIntervalList.add(rrInterval);
-            heartRateList.add(new Integer(hr));
+            this.rrIntervalList.add(rrInterval);
+            this.heartRateList.add(new Integer(hr));
         }
     }
 
@@ -509,10 +519,10 @@ public class MeasureFragment extends Fragment {
         }
     }
 
-
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private void setCharts(){
-        chartService.setLineChartData(chartHeartRate, heartRateList, "Frecuencia cardiaca", Color.RED, xAxisValue);
-        chartService.setLineChartData(chartRR, rrIntervalList, "Intervalo R-R", Color.BLUE, xAxisValue);
+        ChartHelper.fillLineChart2(heartRateList, chartHeartRate, "Frecuencia cardiaca", 1);
+        ChartHelper.fillLineChart2(rrIntervalList, chartRR, "Intervalos R-R", 2);
 
         chartHeartRate.notifyDataSetChanged();
         chartHeartRate.invalidate();
@@ -528,15 +538,20 @@ public class MeasureFragment extends Fragment {
     }
 
     private void setMeasurementInfo(Measurement measurement){
-        this.tvVariabilityInfo.setText(measurement.getVariability().toString());
-        this.tvHeartRateInfo.setText("Frecuencia cardíaca:   " + measurement.getHeartRate().toString() + " bpm");
-        this.tvAverageRR.setText("Media de intervalos R-R:   " + measurement.getMeanRR().toString() + " ms");
-        this.tvSdnn.setText("SDNN:   " + measurement.getSdnn().toString() + " ms");
-        this.tvNn50.setText("NN50:   " + measurement.getNn50().toString());
-        this.tvPnn50.setText("PNN50:   " + measurement.getPnn50().toString() + " %");
-        this.tvRmssd.setText("RMSSD:   " + measurement.getRmssd().toString() + " ms");
-        this.tvLnRmssd.setText("ln(RMSSD):   " + measurement.getLnRmssd().toString() + " ms");
-        this.tvHeartRateMaxMin.setText("Max(FC) - Min(FC):   " + measurement.getHrMaxMinDifference().toString() + " bpm");
+        ChartHelper.setPieChart2(this.pieChartVariability, measurement.getVariability());
+        this.pieChartVariability.notifyDataSetChanged();
+        this.pieChartVariability.invalidate();
+        //this.tvVariabilityInfo.setText(measurement.getVariability().toString());
+        this.tvHeartRateInfo.setText(measurement.getHeartRate().toString());
+        this.tvAverageRR.setText("Media intervalos R-R: " + measurement.getMeanRR().toString() + " ms");
+        this.tvSdnn.setText("SDNN: " + measurement.getSdnn().toString() + " ms");
+        this.tvNn50.setText("NN50: " + measurement.getNn50().toString());
+        this.tvPnn50.setText("PNN50: " + measurement.getPnn50().toString() + " %");
+        this.tvRmssd.setText("RMSSD: " + measurement.getRmssd().toString() + " ms");
+        this.tvLnRmssd.setText("LN (RMSSD): " + measurement.getLnRmssd().toString() + " ms");
+        this.tvHeartRateMax.setText("FC Máxima: " + measurement.getHrMax().toString() + " bpm");
+        this.tvHeartRateMin.setText("FC Mínima: " + measurement.getHrMin().toString() + " bpm");
+        this.tvHeartRateMaxMin.setText("Max(FC) - Min(FC): " + measurement.getHrMaxMinDifference().toString() + " bpm");
     }
 
     private void animatePrgressBar(){
@@ -557,7 +572,7 @@ public class MeasureFragment extends Fragment {
             public void onClick(DialogInterface dialogInterface, int i) {
                 isMeasureSaved = true;
                 if(measurement != null){
-                    xmlService.addMeasurement(measurement);
+                    saveMeasurement();
                 }
             }
         });
@@ -570,5 +585,9 @@ public class MeasureFragment extends Fragment {
         AlertDialog dialog = builder.create();
 
         dialog.show();
+    }
+
+    private void saveMeasurement(){
+        DbHelper.insertMeasurement(this.db, this.measurement);
     }
 }

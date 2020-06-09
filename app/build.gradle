@@ -5,7 +5,7 @@ android {
     buildToolsVersion "29.0.2"
     defaultConfig {
         applicationId "com.tfg.hrv"
-        minSdkVersion 14
+        minSdkVersion 21
         targetSdkVersion 29
         versionCode 1
         versionName "1.0"
@@ -53,4 +53,10 @@ dependencies {
     implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0'
     implementation 'androidx.mediarouter:mediarouter:1.1.0'
     implementation'com.google.android.material:material:1.2.0-alpha03'
+    implementation'com.alespero:expandable-cardview:0.6'
+    implementation 'com.android.support:support-compat:28.0.0'
+    implementation 'com.android.support:support-core-utils:28.0.0'
+    implementation 'com.android.support:support-core-ui:28.0.0'
+    implementation 'com.android.support:support-media-compat:28.0.0'
+    implementation 'com.google.code.gson:gson:2.3.1'
 }

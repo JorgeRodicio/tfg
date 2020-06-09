@@ -2,12 +2,10 @@ package com.tfg.hrv;
 
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
-import android.util.Log;
-import android.util.Xml;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.tfg.hrv.core.Measurement;
-import com.tfg.hrv.core.SQLite.MeasurementDbHelper;
+import com.tfg.hrv.core.SQLite.DbHelper;
 import com.tfg.hrv.core.XmlService;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -21,8 +19,7 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity {
 
     private SQLiteDatabase db;
-    private MeasurementDbHelper dbHelper;
-    private XmlService xmlService;
+    private DbHelper dbHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,23 +32,16 @@ public class MainActivity extends AppCompatActivity {
                 R.id.navigation_home,
                 R.id.navigation_measure,
                 R.id.navigation_historical,
-                R.id.navigation_charts)
+                R.id.navigation_charts,
+                R.id.navigation_settings)
                 .build();
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(navView, navController);
 
-        this.dbHelper = new MeasurementDbHelper(this);
+        this.dbHelper = new DbHelper(this);
         this.db = dbHelper.getWritableDatabase();
 
-        if(db != null){
-            List<Measurement> measurements = MeasurementDbHelper.getAllMeasurement(db);
-            /*if(measurements != null && !measurements.isEmpty()){
-                for (Measurement measure: measurements) {
-                    System.out.println(measure.toString());
-                }
-            }*/
-        }
     }
 
     @Override

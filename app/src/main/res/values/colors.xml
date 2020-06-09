@@ -2,10 +2,12 @@
 <resources>
     <color name="colorPrimary">#41789E</color>
     <color name="colorPrimaryDark">#41789E</color>
-    <color name="colorAccent">#F43636</color>
-    <color name="colorFondoMenuOpciones">#E5E5E5</color>
+    <color name="colorAccent">#46D2B9</color>
+    <color name="colorFondoMenuOpciones">#FAF3F3F3</color>
     <color name="colorToolbarHistorico">#FAEBEBCC</color>
     <color name="colorBlack">#000000</color>
-    <color name="colorYellow">#F0EB37</color>
+    <color name="colorYellow">#00F8F8F8</color>
     <color name="colorBlue">#46D2B9</color>
+    <color name="colorGrey">#7A7A7A</color>
+    <color name="colorGreen">#73E173</color>
 </resources>

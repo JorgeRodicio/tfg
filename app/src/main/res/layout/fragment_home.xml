@@ -21,15 +21,6 @@
             android:layout_marginTop="20dp"
             android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/tv_lastMeasurement_home"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="20dp"
-                android:layout_marginRight="20dp"
-                android:text="@string/title_last_measurement"
-                android:textSize="12sp" />
-
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -42,150 +33,161 @@
 
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="20dp"
+                    android:layout_height="match_parent"
                     android:orientation="vertical">
 
-                    <TextView
-                        android:id="@+id/tv_date_home"
+                    <androidx.appcompat.widget.Toolbar
+                        android:id="@+id/toolbar_title_home"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="20dp"
-                        android:text="TextView"
-                        android:textSize="12sp" />
+                        android:layout_height="40dp"
+                        android:background="@color/colorFondoMenuOpciones"
+                        android:minHeight="?attr/actionBarSize"
+                        android:theme="?attr/actionBarTheme"
+                        app:titleTextAppearance="@style/TextAppearance.AppCompat.Small"
+                        app:titleTextColor="@color/mr_cast_progressbar_background_dark" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="20dp"
                         android:orientation="vertical">
 
-                        <com.github.mikephil.charting.charts.PieChart
-                            android:id="@+id/pieChart_variability_home"
+                        <LinearLayout
                             android:layout_width="match_parent"
-                            android:layout_height="200dp"
-                            android:layout_marginLeft="10dp"
-                            android:layout_marginRight="10dp">
+                            android:layout_height="match_parent"
+                            android:orientation="vertical">
 
-                        </com.github.mikephil.charting.charts.PieChart>
+                            <com.github.mikephil.charting.charts.PieChart
+                                android:id="@+id/pieChart_variability_home"
+                                android:layout_width="match_parent"
+                                android:layout_height="200dp"
+                                android:layout_marginLeft="10dp"
+                                android:layout_marginRight="10dp">
+
+                            </com.github.mikephil.charting.charts.PieChart>
+
+                            <TextView
+                                android:id="@+id/tv_subtitle_variability"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="30dp"
+                                android:layout_weight="1"
+                                android:text="Variabilidad"
+                                android:textSize="12sp" />
+
+                            <TextView
+                                android:id="@+id/tv_hr_home"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="HR"
+                                android:textSize="36sp"
+                                android:textStyle="bold" />
+
+                        </LinearLayout>
+
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:id="@+id/tv_subtitle_heart_rate"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="30dp"
+                                android:layout_weight="1"
+                                android:text="Frecuencia cardíaca (bpm)"
+                                android:textSize="12sp" />
+
+                        </LinearLayout>
+
+
+                        <com.github.mikephil.charting.charts.LineChart
+                            android:id="@+id/chart_heartRates_home"
+                            android:layout_width="match_parent"
+                            android:layout_height="100dp"
+                            android:layout_marginBottom="20dp">
+
+                        </com.github.mikephil.charting.charts.LineChart>
+
+                        <com.github.mikephil.charting.charts.LineChart
+                            android:id="@+id/chart_rrInterval_home"
+                            android:layout_width="match_parent"
+                            android:layout_height="100dp"
+                            android:layout_marginBottom="20dp">
+
+                        </com.github.mikephil.charting.charts.LineChart>
 
                         <TextView
-                            android:id="@+id/tv_subtitle_variability"
-                            android:layout_width="match_parent"
+                            android:id="@+id/tv_mean_rr_home"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginBottom="30dp"
-                            android:layout_weight="1"
-                            android:text="Variabilidad"
-                            android:textSize="12sp" />
+                            android:layout_marginTop="10dp"
+                            android:text="Media intervalos R-R: "
+                            app:drawableTint="@color/design_default_color_error" />
 
                         <TextView
-                            android:id="@+id/tv_hr_home"
-                            android:layout_width="match_parent"
+                            android:id="@+id/tv_sdnn_home"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="HR"
-                            android:textSize="36sp"
-                            android:textStyle="bold" />
+                            android:layout_marginTop="10dp"
+                            android:text="SDNN: " />
+
+                        <TextView
+                            android:id="@+id/tv_nn50_home"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:text="NN50: " />
+
+                        <TextView
+                            android:id="@+id/tv_pnn50_home"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:text="PNN50: " />
+
+                        <TextView
+                            android:id="@+id/tv_rmssd_home"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:text="RMSSD: " />
+
+                        <TextView
+                            android:id="@+id/tv_lnrmssd_home"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:text="LN (RMSSD): " />
+
+                        <TextView
+                            android:id="@+id/tv_hrMax_home"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:text="FC Máxima: " />
+
+                        <TextView
+                            android:id="@+id/tv_hrMin_home"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:text="FC Mínima: " />
+
+                        <TextView
+                            android:id="@+id/tv_hrMaxMin_home"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:layout_marginBottom="10dp"
+                            android:text="FC (Máxima - Mínima): " />
 
                     </LinearLayout>
-
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:orientation="horizontal">
-
-                        <TextView
-                            android:id="@+id/tv_subtitle_heart_rate"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginBottom="30dp"
-                            android:layout_weight="1"
-                            android:text="Frecuencia cardíaca (bpm)"
-                            android:textSize="12sp" />
-
-                    </LinearLayout>
-
-                    <com.github.mikephil.charting.charts.LineChart
-                        android:id="@+id/chart_rrInterval_home"
-                        android:layout_width="match_parent"
-                        android:layout_height="100dp"
-                        android:layout_marginBottom="20dp" >
-
-                    </com.github.mikephil.charting.charts.LineChart>
-
-
-                    <com.github.mikephil.charting.charts.LineChart
-                        android:id="@+id/chart_heartRates_home"
-                        android:layout_width="match_parent"
-                        android:layout_height="100dp"
-                        android:layout_marginBottom="20dp" />
-
-                    <TextView
-                        android:id="@+id/tv_mean_rr_home"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:text="Media intervalos R-R: "
-                        app:drawableTint="@color/design_default_color_error" />
-
-                    <TextView
-                        android:id="@+id/tv_sdnn_home"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:text="SDNN: " />
-
-                    <TextView
-                        android:id="@+id/tv_nn50_home"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:text="NN50: " />
-
-                    <TextView
-                        android:id="@+id/tv_pnn50_home"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:text="PNN50: " />
-
-                    <TextView
-                        android:id="@+id/tv_rmssd_home"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:text="RMSSD: " />
-
-                    <TextView
-                        android:id="@+id/tv_lnrmssd_home"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:text="LN (RMSSD): " />
-
-                    <TextView
-                        android:id="@+id/tv_hrMax_home"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:text="FC Máxima: " />
-
-                    <TextView
-                        android:id="@+id/tv_hrMin_home"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:text="FC Mínima: " />
-
-                    <TextView
-                        android:id="@+id/tv_hrMaxMin_home"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:layout_marginBottom="10dp"
-                        android:text="FC (Máxima - Mínima): " />
-
                 </LinearLayout>
+
             </androidx.cardview.widget.CardView>
 
             <Spinner

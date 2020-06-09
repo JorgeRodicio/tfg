@@ -1,0 +1,7 @@
+<paths>
+    <cache-path name="cache" path="/android" />
+    <files-path
+        name="files"
+        path="/" >
+    </files-path>
+</paths>

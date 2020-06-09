@@ -176,8 +176,8 @@ public class XmlService {
 
             OutputStreamWriter fout = new OutputStreamWriter(this.context.openFileOutput(FILE_NAME, Context.MODE_PRIVATE));
 
-            //BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(result));
-            //bufferedWriter.write(result);
+            BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(result));
+            bufferedWriter.write(result);
 
             fout.write(result);
             fout.close();

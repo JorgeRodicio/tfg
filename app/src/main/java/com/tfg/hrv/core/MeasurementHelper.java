@@ -1,5 +1,7 @@
 package com.tfg.hrv.core;
 
+import com.google.gson.Gson;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -7,6 +9,17 @@ import java.util.Map;
 
 public class MeasurementHelper {
 
+
+    public static List<Measurement> getMeasurementsFromYearMonth(List<Measurement> measurements, String year, String month){
+        List<Measurement> toret = new ArrayList<>();
+
+        for (Measurement measurement: measurements) {
+            if(getInfoFromDate(measurement.getDate()).get("year").equals(year) && getInfoFromDate(measurement.getDate()).get("month").equals(month)){
+                toret.add(measurement);
+            }
+        }
+        return toret;
+    }
 
     public static List<Measurement> getMeasurementsFromMonth(List<Measurement> measurements, String month){
         List<Measurement> toret = new ArrayList<>();
@@ -16,7 +29,6 @@ public class MeasurementHelper {
                 toret.add(measurement);
             }
         }
-
         return toret;
     }
 
@@ -160,4 +172,134 @@ public class MeasurementHelper {
 
         return strDate1.compareTo(strDate2);
     }
+
+
+    public static String formatMonthNumber(String month) {
+        String toret = "";
+        switch (month){
+            case "1":
+                toret = "01";
+                break;
+            case "2":
+                toret = "02";
+                break;
+            case "3":
+                toret = "03";
+                break;
+            case "4":
+                toret = "04";
+                break;
+            case "5":
+                toret = "05";
+                break;
+            case "6":
+                toret = "06";
+                break;
+            case "7":
+                toret = "07";
+                break;
+            case "8":
+                toret = "08";
+                break;
+            case "9":
+                toret = "09";
+                break;
+            case "10":
+                toret = "10";
+                break;
+            case "11":
+                toret = "11";
+                break;
+            case "12":
+                toret = "12";
+                break;
+        }
+
+
+        return toret;
+    }
+
+    public static String measurementListToXml(List<Measurement> measurementList){
+        StringBuilder toret = new StringBuilder();
+        toret.append("<MEASUREMENTS>");
+        for (Measurement measurement : measurementList) {
+            toret.append("<MEASUREMENT>");
+
+            toret.append("<HEART_RATES>");
+            for (Integer heartRate : measurement.getHeartRateList()) {
+                toret.append("<HEART_RATE>");
+                toret.append(heartRate);
+                toret.append("</HEART_RATE>");
+            }
+            toret.append("</HEART_RATES>");
+
+
+            toret.append("<RR_INTERVALS>");
+            for (Integer rrInterval : measurement.getRrIntervals()) {
+                toret.append("<RR_INTERVAL>");
+                toret.append(rrInterval);
+                toret.append("</RR_INTERVAL>");
+            }
+            toret.append("</RR_INTERVALS>");
+
+            toret.append("<VARIABILITY>");
+            toret.append(measurement.getVariability());
+            toret.append("</VARIABILITY>");
+
+            toret.append("<HEART_RATE_MEAN>");
+            toret.append(measurement.getHeartRate());
+            toret.append("</HEART_RATE_MEAN>");
+
+            toret.append("<RR_INTERVALS_MEAN>");
+            toret.append(measurement.getMeanRR());
+            toret.append("</RR_INTERVALS_MEAN>");
+
+            toret.append("<SDNN>");
+            toret.append(measurement.getSdnn());
+            toret.append("</SDNN>");
+
+            toret.append("<NN50>");
+            toret.append(measurement.getNn50());
+            toret.append("</NN50>");
+
+            toret.append("<PNN50>");
+            toret.append(measurement.getPnn50());
+            toret.append("</PNN50>");
+
+            toret.append("<RMSSD>");
+            toret.append(measurement.getRmssd());
+            toret.append("</RMSSD>");
+
+            toret.append("<LN_RMSSD>");
+            toret.append(measurement.getLnRmssd());
+            toret.append("</LN_RMSSD>");
+
+            toret.append("<HEART_RATE_MAX>");
+            toret.append(measurement.getHrMax());
+            toret.append("</HEART_RATE_MAX>");
+
+            toret.append("<HEART_RATE_MIN>");
+            toret.append(measurement.getHrMin());
+            toret.append("</HEART_RATE_MIN>");
+
+            toret.append("<HEART_RATE_MAX_MIN_DIFF>");
+            toret.append(measurement.getHrMaxMinDifference());
+            toret.append("</HEART_RATE_MAX_MIN_DIFF>");
+
+            toret.append("</MEASUREMENT>");
+        }
+
+        toret.append("</MEASUREMENTS>");
+
+        return toret.toString();
+    }
+
+
+    public static String measuerementListToJson(List<Measurement> listMeasurement){
+        Gson gson =  new Gson();
+        String json = gson.toJson(listMeasurement);
+
+        return json;
+    }
+
 }

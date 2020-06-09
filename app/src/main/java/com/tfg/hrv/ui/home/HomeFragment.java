@@ -10,44 +10,34 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
+import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProviders;
 
-import com.github.mikephil.charting.charts.BarChart;
-import com.github.mikephil.charting.charts.Chart;
-import com.github.mikephil.charting.charts.CombinedChart;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.charts.PieChart;
 import com.tfg.hrv.R;
-import com.tfg.hrv.core.ChartService;
 import com.tfg.hrv.core.Measurement;
 import com.tfg.hrv.core.MeasurementHelper;
-import com.tfg.hrv.core.SQLite.MeasurementDbHelper;
-import com.tfg.hrv.core.XmlService;
+import com.tfg.hrv.core.SQLite.DbHelper;
 import com.tfg.hrv.ui.charts.ChartHelper;
 
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.Locale;
-import java.util.Map;
 
 public class HomeFragment extends Fragment {
 
     private final static String[] MONTHS = {"Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"};
 
     private SQLiteDatabase db;
-    private MeasurementDbHelper dbHelper;
+    private DbHelper dbHelper;
     private List<Measurement> measurements;
 
     private TextView tvDate;
     private TextView tvVariability;
+    private Toolbar toolbarTitle;
     private TextView tvHeartRate;
     private TextView tvSubtitleVariability;
     private TextView tvSubtitleHeartRate;
@@ -72,8 +62,9 @@ public class HomeFragment extends Fragment {
 
         View view  = inflater.inflate(R.layout.fragment_home, container, false);
 
-        this.tvDate = (TextView) view.findViewById(R.id.tv_date_home);
+        //this.tvDate = (TextView) view.findViewById(R.id.tv_date_home);
         //this.tvVariability = (TextView) view.findViewById(R.id.tv_variability_home);
+        this.toolbarTitle = (Toolbar) view.findViewById(R.id.toolbar_title_home);
         this.tvHeartRate = (TextView) view.findViewById(R.id.tv_hr_home);
         this.tvSubtitleVariability = (TextView) view.findViewById(R.id.tv_subtitle_variability);
         this.tvSubtitleHeartRate = (TextView) view.findViewById(R.id.tv_subtitle_heart_rate);
@@ -109,18 +100,17 @@ public class HomeFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        this.dbHelper = new MeasurementDbHelper(getContext());
+        this.dbHelper = new DbHelper(getContext());
         this.db = dbHelper.getWritableDatabase();
 
         if(db != null){
-            this.measurements = MeasurementDbHelper.getAllMeasurement(db);
+            this.measurements = DbHelper.getAllMeasurement(db);
         }
 
         Measurement lastMeasurement = this.measurements.get(this.measurements.size() - 1);
         lastMeasurement.setVariability(82);
 
         setTextViewInfo(lastMeasurement);
-        setPieChart(lastMeasurement);
         setChartsLastMeasurement(lastMeasurement);
         setChartLastMonth("01");
         setSpinner();
@@ -139,8 +129,9 @@ public class HomeFragment extends Fragment {
 
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
     private void setTextViewInfo(Measurement measurement){
-        this.tvDate.setText(measurement.getDate().toString());
+        //this.tvDate.setText(measurement.getDate().toString());
         //this.tvVariability.setText(measurement.getVariability().toString());
+        this.toolbarTitle.setTitle("Última medición: " + measurement.getDate());
         this.tvHeartRate.setText(measurement.getHeartRate().toString());
         this.tvMeanRR.setText(this.tvMeanRR.getText() + " " + measurement.getMeanRR().toString() + " ms");
         this.tvSdnn.setText(this.tvSdnn.getText() + " " + measurement.getSdnn().toString() + " ms");
@@ -162,6 +153,7 @@ public class HomeFragment extends Fragment {
     private void setChartsLastMeasurement(Measurement lastMeasurement){
         ChartHelper.fillLineChart(lastMeasurement.getRrIntervals(), this.chartRRInterval, "Intervalos R-R", 1);
         ChartHelper.fillLineChart(lastMeasurement.getHeartRateList(), this.chartHeartRates, "Frecuencias cardiacas", 2);
+        ChartHelper.setPieChart(this.pieChartVariability, lastMeasurement.getVariability());
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
@@ -181,9 +173,6 @@ public class HomeFragment extends Fragment {
         });
     }
 
-    private void setPieChart(Measurement measurement){
-        ChartHelper.setPieChart(this.pieChartVariability, measurement.getVariability());
-    }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private void setSpinner(){
